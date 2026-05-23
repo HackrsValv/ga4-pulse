@@ -1,0 +1,27 @@
+packages/cli/src/config/schema.mjs
+  s_dbf1fa63d2b43c::t_f44f29759c237e 32-49
+docs/openpanel-setup.md
+  s_dbf1fa63d2b43c::t_fab02b02013d8f 86,88
+  s_dbf1fa63d2b43c::t_6be6766830ae97 85,87,89-110
+packages/cli/src/sources/openpanel/queries.mjs
+  s_dbf1fa63d2b43c::t_be760f0224f788 15-18,32,36-37,78-89,91-98,100-106,74
+  s_dbf1fa63d2b43c::t_b53f2427c0bd98 38,4-12,27-30,33-34,39-73,75,77,99
+packages/cli/test/openpanel-config.test.mjs
+  s_dbf1fa63d2b43c::t_07f43b5d83419f 1-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "4997f40fa80212a81ec9788c0d27dc3b8a497fd3",
+  "prompts": {},
+  "sessions": {
+    "s_dbf1fa63d2b43c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2258430-ee12-413b-b94f-4472ab520463",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Marty <saint@ghost.lt>"
+    }
+  }
+}
