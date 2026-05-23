@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- OpenPanel `source.project_id` is now optional. When omitted, ga4-pulse calls `/manage/projects` and auto-resolves the project ID if the client has access to exactly one project. Multi-project clients still need explicit `project_id`. ([#16](https://github.com/HackrsValv/ga4-pulse/issues/16))
+
+### Added
 - OpenPanel as an alternative analytics source. Same digest pipeline, swap `source.type: openpanel` in `pulse.config.yaml`. ([#11](https://github.com/HackrsValv/ga4-pulse/issues/11))
 - `source` discriminated-union config block (replaces bare `ga4` block; legacy block still accepted for back-compat).
 - `docs/openpanel-setup.md` — credentials, config, known limitations.

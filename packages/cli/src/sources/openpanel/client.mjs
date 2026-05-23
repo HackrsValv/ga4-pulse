@@ -9,8 +9,6 @@ export function buildOpenpanelClient(config) {
     );
   }
   const apiUrl = (process.env.OPENPANEL_API_URL || config.api_url || DEFAULT_API_URL).replace(/\/$/, '');
-  const projectId = config.project_id;
-  if (!projectId) throw new Error('OpenPanel source requires `source.project_id` in pulse.config.yaml.');
 
   const headers = {
     'openpanel-client-id': clientId,
@@ -38,5 +36,35 @@ export function buildOpenpanelClient(config) {
     return res.json();
   }
 
-  return { request, projectId, apiUrl };
+  // project_id is now optional — resolved lazily via resolveProjectId() when first needed.
+  // Keep the configured value as a fast path; runReports() calls resolveProjectId() before
+  // any other request to populate this if absent.
+  const client = { request, apiUrl, projectId: config.project_id || null };
+  return client;
+}
+
+export async function resolveProjectId(client, source) {
+  if (source.project_id) return source.project_id;
+  let list;
+  try {
+    list = await client.request('/manage/projects');
+  } catch (err) {
+    throw new Error(
+      `OpenPanel: could not list projects for auto-discovery (${err.message}). Set source.project_id in pulse.config.yaml or ensure the client has read scope.`,
+      { cause: err },
+    );
+  }
+  const projects = Array.isArray(list) ? list : (list.data ?? list.projects ?? []);
+  if (projects.length === 1) return projects[0].id;
+  if (projects.length === 0) {
+    throw new Error(
+      'OpenPanel: this client has no project access. Provision a read or root client scoped to the project, or set source.project_id explicitly.',
+    );
+  }
+  const summary = projects
+    .map((p) => `${p.id}${p.slug || p.name ? ` (${p.slug || p.name})` : ''}`)
+    .join(', ');
+  throw new Error(
+    `OpenPanel: this client has access to ${projects.length} projects (${summary}). Set source.project_id in pulse.config.yaml to disambiguate.`,
+  );
 }
