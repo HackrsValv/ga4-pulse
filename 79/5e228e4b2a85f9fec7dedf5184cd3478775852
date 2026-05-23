@@ -1,0 +1,32 @@
+docs/openpanel-setup.md
+  s_dbf1fa63d2b43c::t_6a66c3d027eb05 23-26
+package.json
+  s_dbf1fa63d2b43c::t_9190faa81e7596 16
+packages/cli/test/openpanel-resolve-project.test.mjs
+  s_dbf1fa63d2b43c::t_24f57ec723672d 1-62
+packages/cli/src/sources/openpanel/client.mjs
+  s_dbf1fa63d2b43c::t_d002d04c1fe593 39-69
+packages/cli/src/sources/openpanel/queries.mjs
+  s_dbf1fa63d2b43c::t_319f15eb5f2d65 1
+  s_dbf1fa63d2b43c::t_5223e4083566d3 25-26
+packages/cli/src/config/schema.mjs
+  s_dbf1fa63d2b43c::t_f6a6e569b7b287 28
+CHANGELOG.md
+  s_dbf1fa63d2b43c::t_4233831a7cfcd5 11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "795e228e4b2a85f9fec7dedf5184cd3478775852",
+  "prompts": {},
+  "sessions": {
+    "s_dbf1fa63d2b43c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2258430-ee12-413b-b94f-4472ab520463",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": null
+    }
+  }
+}
