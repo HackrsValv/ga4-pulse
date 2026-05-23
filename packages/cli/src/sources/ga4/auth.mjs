@@ -10,7 +10,7 @@ export function buildAuthClient() {
     try {
       credentials = JSON.parse(process.env.GA4_SERVICE_ACCOUNT_JSON);
     } catch (err) {
-      throw new Error(`GA4_SERVICE_ACCOUNT_JSON is not valid JSON: ${err.message}`);
+      throw new Error(`GA4_SERVICE_ACCOUNT_JSON is not valid JSON: ${err.message}`, { cause: err });
     }
     return new google.auth.GoogleAuth({ credentials, scopes: SCOPES });
   }
