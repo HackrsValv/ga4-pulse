@@ -72,7 +72,8 @@ Full input reference in [docs/action-reference.md](docs/action-reference.md).
 ## Docs
 
 - [Quickstart](docs/quickstart.md) — 10-step setup, zero to first email
-- [OAuth setup](docs/oauth-setup.md) — Google Cloud Console walkthrough
+- [OAuth setup (GA4)](docs/oauth-setup.md) — Google Cloud Console walkthrough
+- [OpenPanel source](docs/openpanel-setup.md) — alternative analytics upstream (experimental)
 - [Providers](docs/providers.md) — sender-specific configuration
 - [Config reference](docs/config-reference.md) — `pulse.config.yaml` schema
 - [Troubleshooting](docs/troubleshooting.md) — common errors and fixes

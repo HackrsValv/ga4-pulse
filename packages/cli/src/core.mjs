@@ -1,6 +1,5 @@
 import { loadConfig } from './config/load.mjs';
-import { runReports } from './ga4/queries.mjs';
-import { aggregate } from './ga4/aggregate.mjs';
+import { resolveSource } from './sources/index.mjs';
 import { renderHtml } from './compose/html.mjs';
 import { renderMarkdown } from './compose/markdown.mjs';
 import { buildSubject } from './compose/subject.mjs';
@@ -8,8 +7,9 @@ import { senders } from './senders/index.mjs';
 
 export async function runPulse({ configPath, dryRun = false } = {}) {
   const config = await loadConfig(configPath);
-  const reports = await runReports(config);
-  const data = aggregate(reports, config);
+  const source = resolveSource(config);
+  const reports = await source.runReports(config);
+  const data = source.aggregate(reports, config);
   const subject = buildSubject(config, data);
   const html = renderHtml(data, config, subject);
   const markdown = renderMarkdown(data, config, subject);
