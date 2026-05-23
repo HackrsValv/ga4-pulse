@@ -1,0 +1,19 @@
+packages/cli/src/sources/ga4/auth.mjs
+  s_dbf1fa63d2b43c::t_e12718310ad659 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "bf5bb987c7bcb5ad51c1a6156bdf1103ef3037c2",
+  "prompts": {},
+  "sessions": {
+    "s_dbf1fa63d2b43c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2258430-ee12-413b-b94f-4472ab520463",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Marty <saint@ghost.lt>"
+    }
+  }
+}
