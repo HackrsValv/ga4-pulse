@@ -1,11 +1,17 @@
 import { buildOpenpanelClient, resolveProjectId } from './client.mjs';
 import { windowToDateRange } from '../../util/date.mjs';
 
-// Defaults reflect api.openpanel.dev as of 2026-05-23. Self-hosted OpenPanel instances
-// or future API revisions may use different paths and range labels — override via
-// `source.endpoints.*` and `source.range_map.*` in pulse.config.yaml. See docs/openpanel-setup.md.
+// Defaults verified 2026-05-23 against self-hosted OpenPanel (insights.router.ts +
+// export.router.ts). Override via `source.endpoints.*` and `source.range_map.*`
+// in pulse.config.yaml. See docs/openpanel-setup.md.
+//
+// `metrics` was `/insights/{projectId}/metrics` (#13 finding 4: 404 — no such route).
+// `/overview` is the headlines-equivalent route on insights.router.
+//
+// `charts` is a GET endpoint with query-string params, not POST with JSON body
+// (#13 finding 5: export.router only defines GET handlers).
 const DEFAULT_ENDPOINTS = {
-  metrics: '/insights/{projectId}/metrics',
+  metrics: '/insights/{projectId}/overview',
   charts: '/export/charts',
   events: '/export/events',
 };
@@ -47,30 +53,14 @@ export async function runReports(config) {
       data: [],
     });
   } else {
-    const chartBody = (event, breakdowns) => ({
-      projectId,
-      range,
-      series: [
-        {
-          id: event,
-          name: event,
-          event: { name: event },
-          aggregations: [{ name: 'count' }, { name: 'unique_visitors' }],
-        },
-      ],
-      breakdowns,
-    });
+    // GET /export/charts with query params (per export.router; no POST handler exists).
+    // breakdown param accepts a single dimension name. Run two GETs in parallel —
+    // pages by `path`, traffic by `utm_source` (referrer fallback handled in aggregate).
     tasks.pages = client.request(expand(endpoints.charts), {
-      method: 'POST',
-      body: chartBody('screen_view', [{ name: 'path' }]),
+      query: { projectId, range, event: 'screen_view', breakdown: 'path' },
     });
     tasks.traffic = client.request(expand(endpoints.charts), {
-      method: 'POST',
-      body: chartBody('screen_view', [
-        { name: 'referrer' },
-        { name: 'utm_source' },
-        { name: 'utm_medium' },
-      ]),
+      query: { projectId, range, event: 'screen_view', breakdown: 'utm_source' },
     });
   }
 

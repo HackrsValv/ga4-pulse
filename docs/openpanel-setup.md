@@ -15,6 +15,12 @@ OpenPanel Cloud → project → Settings → Clients → **+ Add client** → **
 
 Self-hosted: the same UI under `/settings/clients`.
 
+> **Copy `client_secret` immediately — it cannot be retrieved later.** OpenPanel stores secrets in `<32hex>.<64hex>` hash form (salt + sha256) and only shows the raw plain-text value **once at creation**. If you lose it, delete the client and create a new one — the secret cannot be recovered from any UI surface or API response.
+
+### `project_id` format
+
+OpenPanel project IDs are arbitrary string identifiers — on cloud they may look like `proj_xxx`, on self-hosted they are often the project slug (e.g. `mysite`). Both formats are valid. Pass whatever your OpenPanel instance returns as `project.id`. Note that ga4-pulse can auto-resolve this if your client is scoped to a single project — see "project_id is optional" below.
+
 ## 2. Config
 
 ```yaml
@@ -85,7 +91,7 @@ Base URL: `https://api.openpanel.dev` (cloud) or your self-hosted host.
 - OpenPanel does not surface a built-in `bounceRate` metric in all versions; the pulse will show `0` if absent.
 - `keyEvents` mapping: OpenPanel does not have a "key event" flag like GA4. The adapter uses `report.conversion_events` only.
 - `engagementSeconds` may be `0` when OpenPanel returns no `engagement_seconds` or `avg_session_duration` field.
-- **Pages + traffic breakdowns**: default path `POST /export/charts` returned 404 on `api.openpanel.dev` as of 2026-05-23. Override via `source.endpoints.charts` if your deployment exposes a different path, or set `source.skip_charts: true` to suppress the calls. Tracked in [#13](https://github.com/HackrsValv/ga4-pulse/issues/13).
+- **Pages + traffic breakdowns** use `GET /export/charts` with query parameters (`projectId`, `range`, `event=screen_view`, `breakdown=path|utm_source`). If your deployment's `export.router` shape differs, override with `source.endpoints.charts` or set `source.skip_charts: true`.
 - The Export API (`/export/events`) requires credentials with the `read` or `root` scope, not the default `write` scope. If you see `401 Invalid client id` from `/export/events` but `/insights/{projectId}/metrics` works, your client has only `write` access — provision a new client with at least `read`.
 - Windows `48h` and `72h` are mapped to OpenPanel's `7d` range by default. Override via `source.range_map` or switch your `window` to `7d` explicitly.
 

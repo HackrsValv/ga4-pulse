@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - OpenPanel `source.project_id` is now optional. When omitted, ga4-pulse calls `/manage/projects` and auto-resolves the project ID if the client has access to exactly one project. Multi-project clients still need explicit `project_id`. ([#16](https://github.com/HackrsValv/ga4-pulse/issues/16))
 
+### Fixed
+- OpenPanel adapter endpoint corrections ([#13](https://github.com/HackrsValv/ga4-pulse/issues/13)):
+  - `metrics` default path changed from `/insights/{projectId}/metrics` (404 — no such route) to `/insights/{projectId}/overview`. Matches OpenPanel `insights.router.ts`.
+  - `charts` calls changed from `POST /export/charts` with JSON body (404 — no POST handler) to `GET /export/charts` with query string (`projectId`, `range`, `event`, `breakdown`). Matches OpenPanel `export.router.ts`.
+- "keyEvents is 0 — flag conversion events in GA4 Admin" Followup no longer leaks into OpenPanel pulse reports; gated on `config.source.type === 'ga4'`.
+- `docs/openpanel-setup.md` clarifies that `project_id` can be a slug or UUID (OpenPanel project IDs are arbitrary string identifiers, not necessarily UUIDs), and warns that `client_secret` is shown only once at creation in plain text — the hash form returned by tRPC is unusable.
+
 ### Added
 - OpenPanel as an alternative analytics source. Same digest pipeline, swap `source.type: openpanel` in `pulse.config.yaml`. ([#11](https://github.com/HackrsValv/ga4-pulse/issues/11))
 - `source` discriminated-union config block (replaces bare `ga4` block; legacy block still accepted for back-compat).

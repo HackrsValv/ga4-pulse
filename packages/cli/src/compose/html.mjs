@@ -67,7 +67,8 @@ function renderSystem() {
 
 function renderFollowups(data, config) {
   const items = [];
-  if (data.totals.keyEvents === 0 && data.events.length > 0) {
+  const sourceType = config.source?.type || 'ga4';
+  if (sourceType === 'ga4' && data.totals.keyEvents === 0 && data.events.length > 0) {
     items.push('keyEvents is 0 — GA4 Admin → Events → toggle "Mark as key event" on your conversion events.');
   }
   const direct = data.traffic.find((t) => t.source === '(direct)' && t.medium === '(none)');
