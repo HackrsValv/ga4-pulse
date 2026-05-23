@@ -20,7 +20,10 @@ Self-hosted: the same UI under `/settings/clients`.
 ```yaml
 source:
   type: openpanel
-  project_id: 'proj_xxx'           # OpenPanel project ID
+  # project_id is optional. Omit if your read client is scoped to a single project —
+  # ga4-pulse auto-resolves it via GET /manage/projects. Set explicitly only when one
+  # client has access to multiple projects.
+  # project_id: 'proj_xxx'
   api_url: 'https://api.openpanel.dev'   # default; override for self-hosted
   hostname_regex: 'mysite\.com$'   # optional
 

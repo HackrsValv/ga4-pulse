@@ -25,7 +25,7 @@ const sourceSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     type: z.literal('openpanel'),
-    project_id: z.string().min(1),
+    project_id: z.string().min(1).optional(),
     client_id: z.string().optional(),
     api_url: z.string().url().optional(),
     hostname_regex: z.string().optional(),

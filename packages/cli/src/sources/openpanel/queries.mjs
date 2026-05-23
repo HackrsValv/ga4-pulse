@@ -1,4 +1,4 @@
-import { buildOpenpanelClient } from './client.mjs';
+import { buildOpenpanelClient, resolveProjectId } from './client.mjs';
 import { windowToDateRange } from '../../util/date.mjs';
 
 // Defaults reflect api.openpanel.dev as of 2026-05-23. Self-hosted OpenPanel instances
@@ -22,7 +22,8 @@ export async function runReports(config) {
   const source = config.source;
   const client = buildOpenpanelClient(source);
   const dateRange = windowToDateRange(config.window, config.timezone);
-  const projectId = client.projectId;
+  const projectId = await resolveProjectId(client, source);
+  client.projectId = projectId;
 
   const endpoints = { ...DEFAULT_ENDPOINTS, ...(source.endpoints || {}) };
   const rangeMap = { ...DEFAULT_RANGE_MAP, ...(source.range_map || {}) };
