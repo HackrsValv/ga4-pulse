@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `core.mjs` and `commands/send.mjs` dispatch on `config.source.type` instead of hardcoding GA4.
 - `sources/ga4/auth.mjs` auto-detects auth mode (SA → OAuth fallback).
+- OpenPanel adapter (#13): fixed `WINDOW_TO_RANGE` to use values OpenPanel actually accepts (`7d`/`30d` unprefixed; `48h`/`72h` fall back to `7d`). Errors from underlying HTTP calls are no longer silently swallowed — surfaced as `warnings` in Followups + logged to stderr. `/export/charts` calls stubbed until a working endpoint is identified.
+
+### Fixed
+- OpenPanel pulses no longer render silently as all-zeros when API calls fail; failures now appear in Followups with clear cause.
 
 ## [0.1.0] — 2026-05-23
 

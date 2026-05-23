@@ -1,56 +1,107 @@
 import { buildOpenpanelClient } from './client.mjs';
 import { windowToDateRange } from '../../util/date.mjs';
 
-const WINDOW_TO_RANGE = {
+// Defaults reflect api.openpanel.dev as of 2026-05-23. Self-hosted OpenPanel instances
+// or future API revisions may use different paths and range labels — override via
+// `source.endpoints.*` and `source.range_map.*` in pulse.config.yaml. See docs/openpanel-setup.md.
+const DEFAULT_ENDPOINTS = {
+  metrics: '/insights/{projectId}/metrics',
+  charts: '/export/charts',
+  events: '/export/events',
+};
+const DEFAULT_RANGE_MAP = {
   '1h': 'lastHour',
   '24h': 'last24h',
-  '48h': 'last48h',
-  '72h': 'last72h',
-  '7d': 'last7d',
-  '30d': 'last30d',
+  '48h': '7d',
+  '72h': '7d',
+  '7d': '7d',
+  '30d': '30d',
 };
 
 export async function runReports(config) {
   const source = config.source;
   const client = buildOpenpanelClient(source);
   const dateRange = windowToDateRange(config.window, config.timezone);
-
   const projectId = client.projectId;
-  const range = WINDOW_TO_RANGE[config.window] || 'last24h';
 
-  const filters = [];
-  if (source.hostname_regex || config.ga4?.hostname_regex) {
-    // OpenPanel host filter — best-effort. Adjust based on actual field name in your project.
-    filters.push({ name: '__host', operator: 'regex', value: source.hostname_regex || config.ga4.hostname_regex });
+  const endpoints = { ...DEFAULT_ENDPOINTS, ...(source.endpoints || {}) };
+  const rangeMap = { ...DEFAULT_RANGE_MAP, ...(source.range_map || {}) };
+  const range = rangeMap[config.window] || 'last24h';
+  const expand = (path) => path.replace('{projectId}', projectId);
+
+  const tasks = {
+    metrics: client.request(expand(endpoints.metrics), { query: { range } }),
+    events: client.request(expand(endpoints.events), {
+      query: { projectId, range, limit: 200, includes: 'properties' },
+    }),
+  };
+
+  if (source.skip_charts) {
+    tasks.pages = Promise.resolve({
+      error: 'skipped — source.skip_charts is true',
+      data: [],
+    });
+    tasks.traffic = Promise.resolve({
+      error: 'skipped — source.skip_charts is true',
+      data: [],
+    });
+  } else {
+    const chartBody = (event, breakdowns) => ({
+      projectId,
+      range,
+      series: [
+        {
+          id: event,
+          name: event,
+          event: { name: event },
+          aggregations: [{ name: 'count' }, { name: 'unique_visitors' }],
+        },
+      ],
+      breakdowns,
+    });
+    tasks.pages = client.request(expand(endpoints.charts), {
+      method: 'POST',
+      body: chartBody('screen_view', [{ name: 'path' }]),
+    });
+    tasks.traffic = client.request(expand(endpoints.charts), {
+      method: 'POST',
+      body: chartBody('screen_view', [
+        { name: 'referrer' },
+        { name: 'utm_source' },
+        { name: 'utm_medium' },
+      ]),
+    });
   }
 
-  // /export/charts: aggregated time-series with breakdowns
-  const baseChartSeries = (event) => ({
-    id: event,
-    name: event,
-    event: { name: event },
-    filters,
-    aggregations: [{ name: 'count' }, { name: 'unique_visitors' }],
-  });
+  const labels = Object.keys(tasks);
+  const settled = await Promise.allSettled(Object.values(tasks));
+  const out = {};
+  for (let i = 0; i < labels.length; i++) {
+    const label = labels[i];
+    const result = settled[i];
+    if (result.status === 'fulfilled') {
+      out[label] = result.value;
+    } else {
+      const message = result.reason?.message || String(result.reason);
+      process.stderr.write(`ga4-pulse: openpanel ${label} call failed — ${message}\n`);
+      out[label] = { error: message, data: [] };
+    }
+  }
 
-  const queries = [
-    client.request(`/insights/${projectId}/metrics`, {
-      query: { range },
-    }).catch(() => ({ metrics: {} })),
-    client.request(`/export/charts`, {
-      method: 'POST',
-      body: { projectId, range, series: [baseChartSeries('screen_view')], breakdowns: [{ name: 'path' }] },
-    }).catch((e) => ({ error: e.message, data: [] })),
-    client.request(`/export/charts`, {
-      method: 'POST',
-      body: { projectId, range, series: [baseChartSeries('screen_view')], breakdowns: [{ name: 'referrer' }, { name: 'utm_source' }, { name: 'utm_medium' }] },
-    }).catch((e) => ({ error: e.message, data: [] })),
-    client.request(`/export/events`, {
-      query: { projectId, range, limit: 200, includes: 'properties' },
-    }).catch((e) => ({ error: e.message, data: [] })),
-  ];
-
-  const [metrics, pagesChart, trafficChart, eventsList] = await Promise.all(queries);
-
-  return { metrics, pagesChart, trafficChart, eventsList, dateRange };
+  return {
+    metrics: out.metrics,
+    pagesChart: out.pages,
+    trafficChart: out.traffic,
+    eventsList: out.events,
+    dateRange,
+    diagnostics: {
+      window_mapped_to: range,
+      endpoints,
+      errors: Object.fromEntries(
+        Object.entries(out)
+          .filter(([, v]) => v && v.error)
+          .map(([k, v]) => [k, v.error]),
+      ),
+    },
+  };
 }

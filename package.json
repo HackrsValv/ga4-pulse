@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "lint": "eslint packages/cli/src",
-    "test": "node --test packages/cli/test/aggregate.test.mjs packages/cli/test/config.test.mjs packages/cli/test/ga4-auth.test.mjs packages/cli/test/html-escape.test.mjs packages/cli/test/sources-registry.test.mjs packages/cli/test/subject.test.mjs",
+    "test": "node --test packages/cli/test/aggregate.test.mjs packages/cli/test/config.test.mjs packages/cli/test/ga4-auth.test.mjs packages/cli/test/html-escape.test.mjs packages/cli/test/openpanel-config.test.mjs packages/cli/test/sources-registry.test.mjs packages/cli/test/subject.test.mjs",
     "format": "prettier --write \"**/*.{js,mjs,json,md,yml,yaml}\""
   },
   "devDependencies": {

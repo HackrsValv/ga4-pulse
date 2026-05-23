@@ -70,6 +70,9 @@ function collectFollowups(data, config) {
     const days = daysUntil(config.report.deadline.date);
     items.push(`**${config.report.deadline.label || 'Deadline'}**: ${days} days remaining (${config.report.deadline.date}).`);
   }
+  for (const w of data.warnings || []) {
+    items.push(`**Warning**: ${w}`);
+  }
   if (items.length === 0) items.push('No automatic flags this window.');
   return items;
 }

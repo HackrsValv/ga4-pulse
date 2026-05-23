@@ -23,6 +23,12 @@ export function aggregate(reports, config) {
   const pages = breakdownToPages(reports.pagesChart);
   const traffic = breakdownToTraffic(reports.trafficChart);
 
+  const warnings = [];
+  if (reports.metrics?.error) warnings.push(`OpenPanel metrics: ${reports.metrics.error}`);
+  if (reports.pagesChart?.error) warnings.push(`OpenPanel pages: ${reports.pagesChart.error}`);
+  if (reports.trafficChart?.error) warnings.push(`OpenPanel traffic: ${reports.trafficChart.error}`);
+  if (reports.eventsList?.error) warnings.push(`OpenPanel events: ${reports.eventsList.error}`);
+
   return {
     totals,
     hosts: [],
@@ -30,6 +36,8 @@ export function aggregate(reports, config) {
     eventMap,
     pages,
     traffic,
+    warnings,
+    diagnostics: reports.diagnostics,
     window: {
       start: reports.dateRange.startDate,
       end: reports.dateRange.endDate,
