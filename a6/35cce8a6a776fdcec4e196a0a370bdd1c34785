@@ -1,0 +1,28 @@
+packages/cli/test/ga4-auth.test.mjs
+  s_dbf1fa63d2b43c::t_3776c95ab4cb22 63
+  s_dbf1fa63d2b43c::t_c2eafc6e3e4c85 1-62,64-72
+packages/cli/src/sources/ga4/auth.mjs
+  s_dbf1fa63d2b43c::t_ee786db975aa97 3-17,21-24,26-29,32-34,36
+CHANGELOG.md
+  s_dbf1fa63d2b43c::t_6c30cd44b4b50a 15,19
+docs/oauth-setup.md
+  s_dbf1fa63d2b43c::t_f96a2ae0a816a0 3-5
+package.json
+  s_dbf1fa63d2b43c::t_165957d86c8d75 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "a635cce8a6a776fdcec4e196a0a370bdd1c34785",
+  "prompts": {},
+  "sessions": {
+    "s_dbf1fa63d2b43c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2258430-ee12-413b-b94f-4472ab520463",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Marty <saint@ghost.lt>"
+    }
+  }
+}
