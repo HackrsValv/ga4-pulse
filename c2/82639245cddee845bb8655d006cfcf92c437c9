@@ -1,0 +1,21 @@
+package.json
+  s_dbf1fa63d2b43c::t_cf68ab0913f6c5 20
+package-lock.json
+  ai_agent 15,106-124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "c282639245cddee845bb8655d006cfcf92c437c9",
+  "prompts": {},
+  "sessions": {
+    "s_dbf1fa63d2b43c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2258430-ee12-413b-b94f-4472ab520463",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Marty <saint@ghost.lt>"
+    }
+  }
+}
