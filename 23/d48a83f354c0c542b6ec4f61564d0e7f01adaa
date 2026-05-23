@@ -1,0 +1,130 @@
+packages/cli/src/config/load.mjs
+  s_dbf1fa63d2b43c::t_f8054ebe373f63 1-44
+packages/cli/test/html-escape.test.mjs
+  s_dbf1fa63d2b43c::t_3f1d36ba834340 1-12
+packages/cli/src/ga4/queries.mjs
+  s_dbf1fa63d2b43c::t_57649be76d2ec4 1-76
+.github/dependabot.yml
+  s_dbf1fa63d2b43c::t_316c89e22bf793 1-19
+.editorconfig
+  s_dbf1fa63d2b43c::t_de4eb06d87cc6d 1-12
+packages/cli/src/commands/send.mjs
+  s_dbf1fa63d2b43c::t_00d3d63b33b59e 1-54
+.prettierrc
+  s_dbf1fa63d2b43c::t_2a17562907c758 1-6
+packages/cli/test/subject.test.mjs
+  s_dbf1fa63d2b43c::t_18f8be9e5368b7 1-28
+action.yml
+  s_dbf1fa63d2b43c::t_87064962155af4 1-62
+docs/troubleshooting.md
+  s_dbf1fa63d2b43c::t_410d6ec707d6b8 1-57
+docs/action-reference.md
+  s_dbf1fa63d2b43c::t_c7f09488a0d9f6 1-54
+.github/ISSUE_TEMPLATE/feature_request.yml
+  s_dbf1fa63d2b43c::t_6007738bdf0b5b 1-15
+packages/action/README.md
+  s_dbf1fa63d2b43c::t_da82c2326fdf8b 1-27
+.nvmrc
+  s_dbf1fa63d2b43c::t_257cb5ee948e34 1
+template/pulse.config.example.yaml
+  s_dbf1fa63d2b43c::t_8314d262d4de70 1-35
+docs/oauth-setup.md
+  s_dbf1fa63d2b43c::t_a42d05379e2e51 1-62
+packages/cli/src/senders/smtp.mjs
+  s_dbf1fa63d2b43c::t_19e0b5c7ea4b66 1-17
+packages/action/action.yml
+  s_dbf1fa63d2b43c::t_26494f3dc263f9 1-99
+docs/quickstart.md
+  s_dbf1fa63d2b43c::t_a6eb34b157f61f 1-83
+.github/ISSUE_TEMPLATE/bug_report.yml
+  s_dbf1fa63d2b43c::t_b8f7024c5a4df9 1-35
+packages/cli/src/util/html-escape.mjs
+  s_dbf1fa63d2b43c::t_28bf223cb1ec11 1-6
+package.json
+  s_dbf1fa63d2b43c::t_f4872b34897ebe 1-15,17-31
+  s_dbf1fa63d2b43c::t_c76bed9dcc8dd2 16
+packages/cli/src/senders/index.mjs
+  s_dbf1fa63d2b43c::t_52df0a5bc22724 1-13
+packages/cli/src/index.mjs
+  s_dbf1fa63d2b43c::t_d80b0f3a89a85a 1-4
+packages/cli/src/commands/auth.mjs
+  s_dbf1fa63d2b43c::t_840c3f949b8769 1-98
+packages/cli/src/compose/markdown.mjs
+  s_dbf1fa63d2b43c::t_9083109ce21a00 1-79
+docs/config-reference.md
+  s_dbf1fa63d2b43c::t_be500ccd373219 1-37
+packages/cli/test/aggregate.test.mjs
+  s_dbf1fa63d2b43c::t_ba9d4423fa16fc 1-48
+packages/cli/src/bin.mjs
+  s_dbf1fa63d2b43c::t_90729fd30effae 1-50
+.github/workflows/release.yml
+  s_dbf1fa63d2b43c::t_9e33c36c48756a 1-42
+packages/cli/test/config.test.mjs
+  s_dbf1fa63d2b43c::t_a1ec7697c4ab8f 1-29
+packages/cli/src/ga4/auth.mjs
+  s_dbf1fa63d2b43c::t_827bf57a4c23b6 1-19
+.github/workflows/ci.yml
+  s_dbf1fa63d2b43c::t_0a074048ec1271 1-26
+packages/cli/src/compose/subject.mjs
+  s_dbf1fa63d2b43c::t_f47c3e28a50d90 1-13
+.github/PULL_REQUEST_TEMPLATE.md
+  s_dbf1fa63d2b43c::t_94416891cf6165 1-10
+packages/cli/src/senders/resend.mjs
+  s_dbf1fa63d2b43c::t_39ad684b57c03d 1-26
+packages/cli/src/senders/mailgun.mjs
+  s_dbf1fa63d2b43c::t_6e9889d11bff7b 1-39
+eslint.config.js
+  s_dbf1fa63d2b43c::t_bd86a43f208631 1-25
+packages/cli/src/commands/setup.mjs
+  s_dbf1fa63d2b43c::t_84184a30437e7a 1-46
+.gitignore
+  s_dbf1fa63d2b43c::t_3fe223f631f3fc 1-20
+CODE_OF_CONDUCT.md
+  s_dbf1fa63d2b43c::t_9ddcd77536cae9 1-5
+SECURITY.md
+  s_dbf1fa63d2b43c::t_00b0c7819a4275 1-23
+README.md
+  s_dbf1fa63d2b43c::t_f31cd00accd0c5 1-92
+template/README.md
+  s_dbf1fa63d2b43c::t_6804867c9674f2 1-21
+packages/cli/src/compose/html.mjs
+  s_dbf1fa63d2b43c::t_2f8405a636cc34 1-97
+docs/providers.md
+  s_dbf1fa63d2b43c::t_be73adeb17a34b 1-73
+packages/cli/src/senders/slack-webhook.mjs
+  s_dbf1fa63d2b43c::t_b13c5855312b5e 1-18
+packages/cli/src/config/schema.mjs
+  s_dbf1fa63d2b43c::t_26aefb69c0228b 1-57
+CONTRIBUTING.md
+  s_dbf1fa63d2b43c::t_886efa08741f1a 1-31
+packages/cli/package.json
+  s_dbf1fa63d2b43c::t_6bd81b575f6b13 1-56
+packages/cli/src/ga4/aggregate.mjs
+  s_dbf1fa63d2b43c::t_12e01c44fcfa33 1-90
+CHANGELOG.md
+  s_dbf1fa63d2b43c::t_5875487d60594e 1-22
+packages/cli/src/util/date.mjs
+  s_dbf1fa63d2b43c::t_874bd6dcf7ba5c 1-39
+packages/cli/src/senders/sendgrid.mjs
+  s_dbf1fa63d2b43c::t_3144fd2b7afbc3 1-26
+template/.github/workflows/pulse-email.yml
+  s_dbf1fa63d2b43c::t_f58976f9b8df91 1-41
+packages/cli/src/core.mjs
+  s_dbf1fa63d2b43c::t_24471cc550e8da 1-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "23d48a83f354c0c542b6ec4f61564d0e7f01adaa",
+  "prompts": {},
+  "sessions": {
+    "s_dbf1fa63d2b43c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2258430-ee12-413b-b94f-4472ab520463",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Marty <saint@ghost.lt>"
+    }
+  }
+}
