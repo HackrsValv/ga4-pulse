@@ -1,0 +1,29 @@
+packages/cli/src/sources/openpanel/queries.mjs
+  s_dbf1fa63d2b43c::t_be760f0224f788 4-8,12-15,25-29,31-37,39-40,42-57,59-73
+packages/cli/src/compose/markdown.mjs
+  s_dbf1fa63d2b43c::t_248b9537747b09 73-75
+packages/cli/src/sources/openpanel/aggregate.mjs
+  s_dbf1fa63d2b43c::t_98a8e8126f75c0 26-31,39-40
+docs/openpanel-setup.md
+  s_dbf1fa63d2b43c::t_fab02b02013d8f 85-89
+CHANGELOG.md
+  s_dbf1fa63d2b43c::t_fa2e7d61ee477b 18-21
+packages/cli/src/compose/html.mjs
+  s_dbf1fa63d2b43c::t_7b99501c0a665b 85-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "30e39fbb57a71bd73a0811e3094fe53e621aefab",
+  "prompts": {},
+  "sessions": {
+    "s_dbf1fa63d2b43c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2258430-ee12-413b-b94f-4472ab520463",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Marty <saint@ghost.lt>"
+    }
+  }
+}
