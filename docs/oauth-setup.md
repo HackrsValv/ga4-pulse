@@ -1,6 +1,8 @@
 # OAuth setup
 
-ga4-pulse uses an OAuth refresh token for GA4 reads, not a service account. Reason: GA4 admin UI rejects service-account emails as users since 2025, and the `analytics.manage.users` scope needed to bind them via API is verification-gated for non-Google OAuth clients.
+ga4-pulse prefers an OAuth refresh token for GA4 reads, but also accepts a service-account JSON (`GA4_SERVICE_ACCOUNT_JSON` env var) if you already have one provisioned. OAuth is recommended for new setups because GA4 admin UI rejects service-account emails as users since 2025, and the `analytics.manage.users` scope needed to bind SAs via API is verification-gated for non-Google OAuth clients — see [troubleshooting.md](troubleshooting.md) for the Apps Script workaround.
+
+If `GA4_SERVICE_ACCOUNT_JSON` is set, ga4-pulse uses it. Otherwise it falls through to OAuth.
 
 This walkthrough takes ~5 minutes.
 

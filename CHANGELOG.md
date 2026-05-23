@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `source` discriminated-union config block (replaces bare `ga4` block; legacy block still accepted for back-compat).
 - `docs/openpanel-setup.md` — credentials, config, known limitations.
 - `sources/` directory layout — adapters live under `sources/<name>/{queries,aggregate}.mjs`.
+- Service-account auth path: set `GA4_SERVICE_ACCOUNT_JSON` to use a service account instead of OAuth refresh token. OAuth remains preferred for new setups.
 
 ### Changed
 - `core.mjs` and `commands/send.mjs` dispatch on `config.source.type` instead of hardcoding GA4.
+- `sources/ga4/auth.mjs` auto-detects auth mode (SA → OAuth fallback).
 
 ## [0.1.0] — 2026-05-23
 
