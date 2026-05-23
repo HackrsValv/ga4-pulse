@@ -6,38 +6,72 @@ const senderBase = z.object({
   subject_prefix: z.string().optional(),
 });
 
-export const configSchema = z.object({
-  ga4: z.object({
+const senderSchema = z.discriminatedUnion('type', [
+  senderBase.extend({
+    type: z.literal('mailgun'),
+    region: z.enum(['us', 'eu']).default('us'),
+  }),
+  senderBase.extend({ type: z.literal('resend') }),
+  senderBase.extend({ type: z.literal('sendgrid') }),
+  senderBase.extend({ type: z.literal('smtp') }),
+  senderBase.extend({ type: z.literal('slack-webhook') }).omit({ from: true }),
+]);
+
+const sourceSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('ga4'),
     property_id: z.string().min(1),
     hostname_regex: z.string().optional(),
   }),
-  window: z.enum(['1h', '24h', '48h', '72h', '7d', '30d']).default('24h'),
-  timezone: z.string().default('UTC'),
-  subject_property_label: z.string().optional(),
-  report: z
-    .object({
-      sections: z.array(z.enum(['headlines', 'usage', 'system', 'followups'])).optional(),
-      deadline: z
-        .object({
-          date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-          label: z.string().optional(),
-        })
-        .optional(),
-      bot_signature_threshold: z.number().min(0).max(1).optional(),
-      conversion_events: z.array(z.string()).optional(),
-    })
-    .optional(),
-  sender: z.discriminatedUnion('type', [
-    senderBase.extend({
-      type: z.literal('mailgun'),
-      region: z.enum(['us', 'eu']).default('us'),
-    }),
-    senderBase.extend({ type: z.literal('resend') }),
-    senderBase.extend({ type: z.literal('sendgrid') }),
-    senderBase.extend({ type: z.literal('smtp') }),
-    senderBase.extend({ type: z.literal('slack-webhook') }).omit({ from: true }),
-  ]),
+  z.object({
+    type: z.literal('openpanel'),
+    project_id: z.string().min(1),
+    client_id: z.string().optional(),
+    api_url: z.string().url().optional(),
+    hostname_regex: z.string().optional(),
+  }),
+]);
+
+const legacyGa4 = z.object({
+  property_id: z.string().min(1),
+  hostname_regex: z.string().optional(),
 });
+
+const reportSchema = z
+  .object({
+    sections: z.array(z.enum(['headlines', 'usage', 'system', 'followups'])).optional(),
+    deadline: z
+      .object({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        label: z.string().optional(),
+      })
+      .optional(),
+    bot_signature_threshold: z.number().min(0).max(1).optional(),
+    conversion_events: z.array(z.string()).optional(),
+  })
+  .optional();
+
+export const configSchema = z
+  .object({
+    source: sourceSchema.optional(),
+    ga4: legacyGa4.optional(),
+    window: z.enum(['1h', '24h', '48h', '72h', '7d', '30d']).default('24h'),
+    timezone: z.string().default('UTC'),
+    subject_property_label: z.string().optional(),
+    report: reportSchema,
+    sender: senderSchema,
+  })
+  .refine((cfg) => cfg.source || cfg.ga4, {
+    message: 'Either `source` (typed) or legacy `ga4` block is required.',
+    path: ['source'],
+  })
+  .transform((cfg) => {
+    // Back-compat: if user provided legacy `ga4` block but no `source`, materialize a ga4 source.
+    if (!cfg.source && cfg.ga4) {
+      cfg.source = { type: 'ga4', property_id: cfg.ga4.property_id, hostname_regex: cfg.ga4.hostname_regex };
+    }
+    return cfg;
+  });
 
 export function rejectSecretsInConfig(raw) {
   const forbidden = new Set(['api_key', 'apikey', 'password', 'token', 'secret', 'client_secret']);

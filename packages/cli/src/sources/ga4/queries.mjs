@@ -1,18 +1,19 @@
 import { buildAnalyticsDataClient } from './auth.mjs';
-import { windowToDateRange } from '../util/date.mjs';
+import { windowToDateRange } from '../../util/date.mjs';
 
 export async function runReports(config) {
   const client = buildAnalyticsDataClient();
-  const property = `properties/${config.ga4.property_id}`;
+  const source = config.source;
+  const property = `properties/${source.property_id}`;
   const dateRange = windowToDateRange(config.window, config.timezone);
 
-  const dimensionFilter = config.ga4.hostname_regex
+  const dimensionFilter = source.hostname_regex
     ? {
         filter: {
           fieldName: 'hostName',
           stringFilter: {
             matchType: 'PARTIAL_REGEXP',
-            value: config.ga4.hostname_regex,
+            value: source.hostname_regex,
           },
         },
       }

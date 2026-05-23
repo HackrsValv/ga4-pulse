@@ -31,6 +31,12 @@ function applyEnvOverrides(cfg) {
   const out = { ...cfg };
   if (process.env.GA4_PROPERTY_ID) {
     out.ga4 = { ...out.ga4, property_id: process.env.GA4_PROPERTY_ID };
+    if (out.source?.type === 'ga4') {
+      out.source = { ...out.source, property_id: process.env.GA4_PROPERTY_ID };
+    }
+  }
+  if (process.env.OPENPANEL_PROJECT_ID && out.source?.type === 'openpanel') {
+    out.source = { ...out.source, project_id: process.env.OPENPANEL_PROJECT_ID };
   }
   if (process.env.PULSE_WINDOW) out.window = process.env.PULSE_WINDOW;
   if (process.env.PULSE_TIMEZONE) out.timezone = process.env.PULSE_TIMEZONE;

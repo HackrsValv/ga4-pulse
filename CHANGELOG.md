@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- OpenPanel as an alternative analytics source. Same digest pipeline, swap `source.type: openpanel` in `pulse.config.yaml`. ([#11](https://github.com/HackrsValv/ga4-pulse/issues/11))
+- `source` discriminated-union config block (replaces bare `ga4` block; legacy block still accepted for back-compat).
+- `docs/openpanel-setup.md` — credentials, config, known limitations.
+- `sources/` directory layout — adapters live under `sources/<name>/{queries,aggregate}.mjs`.
+
+### Changed
+- `core.mjs` and `commands/send.mjs` dispatch on `config.source.type` instead of hardcoding GA4.
+
 ## [0.1.0] — 2026-05-23
 
 ### Added

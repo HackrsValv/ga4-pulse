@@ -1,8 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { loadConfig } from '../config/load.mjs';
-import { runReports } from '../ga4/queries.mjs';
-import { aggregate } from '../ga4/aggregate.mjs';
+import { resolveSource } from '../sources/index.mjs';
 import { renderHtml } from '../compose/html.mjs';
 import { renderMarkdown } from '../compose/markdown.mjs';
 import { buildSubject } from '../compose/subject.mjs';
@@ -11,8 +10,9 @@ import { senders } from '../senders/index.mjs';
 export async function sendCommand({ config: configPath, dryRun }) {
   const config = await loadConfig(configPath);
 
-  const reports = await runReports(config);
-  const data = aggregate(reports, config);
+  const source = resolveSource(config);
+  const reports = await source.runReports(config);
+  const data = source.aggregate(reports, config);
 
   const subject = buildSubject(config, data);
   const html = renderHtml(data, config, subject);
@@ -24,7 +24,7 @@ export async function sendCommand({ config: configPath, dryRun }) {
     await writeFile(htmlPath, html, 'utf8');
     await writeFile(mdPath, markdown, 'utf8');
     console.log(
-      `Wrote dry-run pulse ${htmlPath} (sessions=${data.totals.sessions}, users=${data.totals.users}, conversions=${data.totals.conversions})`,
+      `Wrote dry-run pulse ${htmlPath} (source=${source.type}, sessions=${data.totals.sessions}, users=${data.totals.users}, conversions=${data.totals.conversions})`,
     );
     return;
   }
@@ -45,7 +45,7 @@ export async function sendCommand({ config: configPath, dryRun }) {
   });
 
   console.log(
-    `Sent pulse for ${data.window.label} (sessions=${data.totals.sessions}, users=${data.totals.users}, conversions=${data.totals.conversions}) → ${formatRecipient(config.sender.to)}${result?.id ? ` [${result.id}]` : ''}`,
+    `Sent pulse for ${data.window.label} (source=${source.type}, sessions=${data.totals.sessions}, users=${data.totals.users}, conversions=${data.totals.conversions}) → ${formatRecipient(config.sender.to)}${result?.id ? ` [${result.id}]` : ''}`,
   );
 }
 

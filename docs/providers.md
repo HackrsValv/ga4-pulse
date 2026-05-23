@@ -1,5 +1,8 @@
 # Sender providers
 
+> Looking for analytics sources (GA4 vs OpenPanel)? See [oauth-setup.md](oauth-setup.md) for GA4 and [openpanel-setup.md](openpanel-setup.md) for OpenPanel. This page covers the email/webhook side only.
+
+
 ## Mailgun
 
 ```yaml

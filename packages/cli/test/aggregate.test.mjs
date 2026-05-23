@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { aggregate } from '../src/ga4/aggregate.mjs';
+import { aggregate } from '../src/sources/ga4/aggregate.mjs';
 
 function fakeOverall(rows) {
   return {

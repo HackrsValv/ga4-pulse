@@ -1,8 +1,22 @@
 # pulse.config.yaml — full schema (commented). Validated by Zod at runtime.
 
-ga4:
-  property_id: 'YOUR_PROPERTY_ID'        # required — GA4 property ID (e.g. '533218728')
-  hostname_regex: 'yoursite\.com$'        # optional — partial-regex filter on hostName dimension
+# Pick ONE analytics source:
+source:
+  type: ga4                               # 'ga4' (default) or 'openpanel'
+  property_id: 'YOUR_PROPERTY_ID'         # required for ga4 — GA4 property ID (e.g. '533218728')
+  hostname_regex: 'yoursite\.com$'         # optional — partial-regex filter on hostName
+
+# OpenPanel example (uncomment + delete the ga4 block above):
+# source:
+#   type: openpanel
+#   project_id: 'proj_xxx'                # OpenPanel project ID
+#   api_url: 'https://api.openpanel.dev'  # override for self-hosted
+#   hostname_regex: 'yoursite\.com$'       # optional
+
+# Legacy shorthand (still accepted; equivalent to source: { type: ga4, ... }):
+# ga4:
+#   property_id: 'YOUR_PROPERTY_ID'
+#   hostname_regex: 'yoursite\.com$'
 
 window: 24h                               # 1h | 24h | 48h | 72h | 7d | 30d
 timezone: 'Europe/Vilnius'                # IANA timezone for date math + subject line
@@ -32,4 +46,6 @@ sender:
   subject_prefix: ''                      # e.g. '[STAGING]'
 
 # Secrets ALWAYS come from env vars / GitHub secrets — never put them in this file.
-# The loader will refuse to read any key named api_key/password/token/secret/client_secret.
+# GA4: GA4_OAUTH_CLIENT_ID, GA4_OAUTH_CLIENT_SECRET, GA4_OAUTH_REFRESH_TOKEN
+# OpenPanel: OPENPANEL_CLIENT_ID, OPENPANEL_CLIENT_SECRET
+# Sender-specific: MAILGUN_API_KEY / RESEND_API_KEY / SENDGRID_API_KEY / SMTP_URL / SLACK_WEBHOOK_URL
