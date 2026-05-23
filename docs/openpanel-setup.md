@@ -82,6 +82,11 @@ Base URL: `https://api.openpanel.dev` (cloud) or your self-hosted host.
 - OpenPanel does not surface a built-in `bounceRate` metric in all versions; the pulse will show `0` if absent.
 - `keyEvents` mapping: OpenPanel does not have a "key event" flag like GA4. The adapter uses `report.conversion_events` only.
 - `engagementSeconds` may be `0` when OpenPanel returns no `engagement_seconds` or `avg_session_duration` field.
+- **Pages + traffic breakdowns are currently empty.** `POST /export/charts` returns 404 on `api.openpanel.dev` as of 2026-05-23. Until a working breakdown endpoint is identified, the pulse renders only the top-line `metrics` and the recent `events` list. Tracked in [#13](https://github.com/HackrsValv/ga4-pulse/issues/13).
+- The Export API (`/export/events`) requires credentials with the `read` or `root` scope, not the default `write` scope. If you see `401 Invalid client id` from `/export/events` but `/insights/{projectId}/metrics` works, your client has only `write` access — provision a new client with at least `read`.
+- Windows `48h` and `72h` are mapped to OpenPanel's `7d` range because OpenPanel does not enumerate those values. Switch to `7d` explicitly to remove ambiguity.
+
+Valid OpenPanel ranges (verified 2026-05-23 against api.openpanel.dev): `30min`, `lastHour`, `last24h`, `today`, `yesterday`, `7d`, `30d`, `3m`, `6m`, `12m`, `monthToDate`, `lastMonth`, `yearToDate`, `lastYear`, `custom`.
 
 ## Troubleshooting
 

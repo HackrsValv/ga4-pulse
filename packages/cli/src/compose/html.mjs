@@ -82,6 +82,9 @@ function renderFollowups(data, config) {
     const daysLeft = daysUntil(deadline.date);
     items.push(`<strong>${escapeHtml(deadline.label || 'Deadline')}</strong>: ${daysLeft} days remaining (${escapeHtml(deadline.date)}).`);
   }
+  for (const w of data.warnings || []) {
+    items.push(`<strong>Warning</strong>: ${escapeHtml(w)}`);
+  }
   if (items.length === 0) items.push('No automatic flags this window.');
   return `<h2>Followups</h2><ol>${items.map((i) => `<li>${i}</li>`).join('')}</ol>`;
 }
