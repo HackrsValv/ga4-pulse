@@ -1,0 +1,35 @@
+name: Bug report
+description: Something broke
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Steps to reproduce + observed vs expected
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: ga4-pulse version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Node version
+      placeholder: 22.x
+  - type: dropdown
+    attributes:
+      label: Sender
+      options:
+        - mailgun
+        - resend
+        - sendgrid
+        - smtp
+        - slack-webhook
+        - (n/a)
+  - type: textarea
+    attributes:
+      label: Logs
+      description: Sanitized — strip API keys, tokens, refresh tokens
+      render: shell

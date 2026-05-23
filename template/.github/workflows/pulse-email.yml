@@ -1,0 +1,41 @@
+name: Daily pulse
+
+on:
+  schedule:
+    # Adjust to your timezone (UTC). 05:00 UTC = 08:00 Europe/Vilnius (EEST), 07:00 (EET winter).
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Skip sending; upload report as artifact'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pulse-email
+  cancel-in-progress: false
+
+jobs:
+  pulse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: HackrsValv/ga4-pulse@v1
+        with:
+          property-id: 'YOUR_PROPERTY_ID'
+          hostname-regex: 'yoursite\.com$'
+          window: 24h
+          timezone: 'Europe/Vilnius'
+          sender: mailgun
+          from: 'pulse@yoursite.com'
+          to: 'me@example.com'
+          dry-run: ${{ inputs.dry_run || 'false' }}
+        env:
+          GA4_OAUTH_CLIENT_ID: ${{ secrets.GA4_OAUTH_CLIENT_ID }}
+          GA4_OAUTH_CLIENT_SECRET: ${{ secrets.GA4_OAUTH_CLIENT_SECRET }}
+          GA4_OAUTH_REFRESH_TOKEN: ${{ secrets.GA4_OAUTH_REFRESH_TOKEN }}
+          MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+          MAILGUN_DOMAIN: ${{ secrets.MAILGUN_DOMAIN }}
+          MAILGUN_REGION: eu

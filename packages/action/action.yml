@@ -1,0 +1,99 @@
+name: 'GA4 Pulse'
+description: 'Send a daily GA4 pulse digest via email or webhook.'
+branding:
+  icon: 'send'
+  color: 'blue'
+
+inputs:
+  property-id:
+    description: 'GA4 property ID'
+    required: true
+  hostname-regex:
+    description: 'Filter sessions by hostName partial regex (e.g. mysite\.com$)'
+    required: false
+    default: ''
+  window:
+    description: 'Lookback window: 1h, 24h, 48h, 72h, 7d, 30d'
+    required: false
+    default: '24h'
+  timezone:
+    description: 'IANA timezone for date math and subject line'
+    required: false
+    default: 'UTC'
+  sender:
+    description: 'mailgun | resend | sendgrid | smtp | slack-webhook'
+    required: true
+  from:
+    description: 'From address (email senders only)'
+    required: false
+    default: ''
+  to:
+    description: 'Recipient address (or comma-separated list)'
+    required: false
+    default: ''
+  subject-prefix:
+    description: 'Prepend a label to the subject line (e.g. [STAGING])'
+    required: false
+    default: ''
+  dry-run:
+    description: 'Skip sending; write pulse-report.{html,md} as workflow artifacts'
+    required: false
+    default: 'false'
+  version:
+    description: 'Pin a specific @hackrsvalv/ga4-pulse version (default: latest)'
+    required: false
+    default: 'latest'
+  config-path:
+    description: 'Optional path to a pulse.config.yaml (overrides all other inputs except secrets)'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Run ga4-pulse
+      shell: bash
+      env:
+        PULSE_INPUTS: ${{ toJson(inputs) }}
+      run: |
+        set -euo pipefail
+        if [[ -n "${{ inputs.config-path }}" ]]; then
+          if [[ "${{ inputs.dry-run }}" == "true" ]]; then
+            npx --yes @hackrsvalv/ga4-pulse@${{ inputs.version }} dry-run --config "${{ inputs.config-path }}"
+          else
+            npx --yes @hackrsvalv/ga4-pulse@${{ inputs.version }} send --config "${{ inputs.config-path }}"
+          fi
+        else
+          cat > /tmp/pulse.config.yaml <<EOF
+        ga4:
+          property_id: '${{ inputs.property-id }}'
+          hostname_regex: '${{ inputs.hostname-regex }}'
+        window: ${{ inputs.window }}
+        timezone: '${{ inputs.timezone }}'
+        sender:
+          type: ${{ inputs.sender }}
+          from: '${{ inputs.from }}'
+          to: '${{ inputs.to }}'
+          subject_prefix: '${{ inputs.subject-prefix }}'
+        EOF
+          if [[ "${{ inputs.dry-run }}" == "true" ]]; then
+            npx --yes @hackrsvalv/ga4-pulse@${{ inputs.version }} dry-run --config /tmp/pulse.config.yaml
+          else
+            npx --yes @hackrsvalv/ga4-pulse@${{ inputs.version }} send --config /tmp/pulse.config.yaml
+          fi
+        fi
+
+    - name: Upload dry-run artifact
+      if: ${{ inputs.dry-run == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: pulse-report
+        path: |
+          pulse-report.html
+          pulse-report.md
+        if-no-files-found: ignore

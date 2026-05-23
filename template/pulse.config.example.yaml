@@ -1,0 +1,35 @@
+# pulse.config.yaml — full schema (commented). Validated by Zod at runtime.
+
+ga4:
+  property_id: 'YOUR_PROPERTY_ID'        # required — GA4 property ID (e.g. '533218728')
+  hostname_regex: 'yoursite\.com$'        # optional — partial-regex filter on hostName dimension
+
+window: 24h                               # 1h | 24h | 48h | 72h | 7d | 30d
+timezone: 'Europe/Vilnius'                # IANA timezone for date math + subject line
+
+subject_property_label: ''                # optional — overrides the property name shown in subject
+
+report:
+  sections:                               # opt-in order; defaults to all four
+    - headlines
+    - usage
+    - system
+    - followups
+  bot_signature_threshold: 0.6            # warn when (direct)/(none) > this fraction of sessions
+  conversion_events:                      # event names counted as conversions
+    - conversion
+    - purchase
+    - lead
+  # deadline:                             # optional countdown bullet in Followups
+  #   date: '2026-07-05'
+  #   label: 'Camp deadline'
+
+sender:
+  type: mailgun                           # mailgun | resend | sendgrid | smtp | slack-webhook
+  region: eu                              # mailgun only — 'us' or 'eu'
+  from: 'pulse@yoursite.com'
+  to: 'me@example.com'                    # string or array of strings
+  subject_prefix: ''                      # e.g. '[STAGING]'
+
+# Secrets ALWAYS come from env vars / GitHub secrets — never put them in this file.
+# The loader will refuse to read any key named api_key/password/token/secret/client_secret.

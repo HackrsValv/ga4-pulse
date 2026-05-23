@@ -1,0 +1,62 @@
+# Root action.yml — re-exports packages/action so consumers can `uses: HackrsValv/ga4-pulse@v1`
+# without a subpath.
+name: 'GA4 Pulse'
+description: 'Send a daily GA4 pulse digest via email or webhook.'
+branding:
+  icon: 'send'
+  color: 'blue'
+
+inputs:
+  property-id:
+    required: true
+    description: 'GA4 property ID'
+  hostname-regex:
+    required: false
+    default: ''
+    description: 'Filter sessions by hostName partial regex'
+  window:
+    required: false
+    default: '24h'
+    description: 'Lookback window: 1h, 24h, 48h, 72h, 7d, 30d'
+  timezone:
+    required: false
+    default: 'UTC'
+    description: 'IANA timezone'
+  sender:
+    required: true
+    description: 'mailgun | resend | sendgrid | smtp | slack-webhook'
+  from:
+    required: false
+    default: ''
+  to:
+    required: false
+    default: ''
+  subject-prefix:
+    required: false
+    default: ''
+  dry-run:
+    required: false
+    default: 'false'
+  version:
+    required: false
+    default: 'latest'
+  config-path:
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: ./packages/action
+      with:
+        property-id: ${{ inputs.property-id }}
+        hostname-regex: ${{ inputs.hostname-regex }}
+        window: ${{ inputs.window }}
+        timezone: ${{ inputs.timezone }}
+        sender: ${{ inputs.sender }}
+        from: ${{ inputs.from }}
+        to: ${{ inputs.to }}
+        subject-prefix: ${{ inputs.subject-prefix }}
+        dry-run: ${{ inputs.dry-run }}
+        version: ${{ inputs.version }}
+        config-path: ${{ inputs.config-path }}
