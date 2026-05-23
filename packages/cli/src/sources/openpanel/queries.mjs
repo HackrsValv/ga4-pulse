@@ -1,12 +1,15 @@
 import { buildOpenpanelClient } from './client.mjs';
 import { windowToDateRange } from '../../util/date.mjs';
 
-// OpenPanel's accepted `range` values (verified against api.openpanel.dev 2026-05-23):
-//   30min | lastHour | last24h | today | yesterday | 7d | 30d | 3m | 6m | 12m
-//   | monthToDate | lastMonth | yearToDate | lastYear | custom
-// Note the inconsistency: prefixed (lastHour, last24h) and unprefixed (7d, 30d).
-// 48h / 72h have no direct equivalent — both fall back to 7d.
-const WINDOW_TO_RANGE = {
+// Defaults reflect api.openpanel.dev as of 2026-05-23. Self-hosted OpenPanel instances
+// or future API revisions may use different paths and range labels — override via
+// `source.endpoints.*` and `source.range_map.*` in pulse.config.yaml. See docs/openpanel-setup.md.
+const DEFAULT_ENDPOINTS = {
+  metrics: '/insights/{projectId}/metrics',
+  charts: '/export/charts',
+  events: '/export/events',
+};
+const DEFAULT_RANGE_MAP = {
   '1h': 'lastHour',
   '24h': 'last24h',
   '48h': '7d',
@@ -20,27 +23,58 @@ export async function runReports(config) {
   const client = buildOpenpanelClient(source);
   const dateRange = windowToDateRange(config.window, config.timezone);
   const projectId = client.projectId;
-  const range = WINDOW_TO_RANGE[config.window] || 'last24h';
 
-  // The OpenPanel HTTP API surface used by this adapter is small and frequently shifts.
-  // We deliberately DO NOT silently swallow failures any more (see #13). Each call returns
-  // either { data: ..., status: 'ok' } or { error, status, code } so aggregate.mjs can render
-  // partial data plus a Followups warning, and the CLI exits 0 with diagnostics rather than
-  // a silent all-zeros pulse.
+  const endpoints = { ...DEFAULT_ENDPOINTS, ...(source.endpoints || {}) };
+  const rangeMap = { ...DEFAULT_RANGE_MAP, ...(source.range_map || {}) };
+  const range = rangeMap[config.window] || 'last24h';
+  const expand = (path) => path.replace('{projectId}', projectId);
 
   const tasks = {
-    metrics: client.request(`/insights/${projectId}/metrics`, { query: { range } }),
-    // /export/charts returns 404 on api.openpanel.dev as of 2026-05-23. Until a working
-    // breakdown endpoint is identified, pages and traffic stay empty.
-    pages: Promise.resolve({ error: 'not implemented — /export/charts is 404 on api.openpanel.dev. See ga4-pulse#13.', data: [] }),
-    traffic: Promise.resolve({ error: 'not implemented — /export/charts is 404 on api.openpanel.dev. See ga4-pulse#13.', data: [] }),
-    events: client.request(`/export/events`, {
+    metrics: client.request(expand(endpoints.metrics), { query: { range } }),
+    events: client.request(expand(endpoints.events), {
       query: { projectId, range, limit: 200, includes: 'properties' },
     }),
   };
 
-  const settled = await Promise.allSettled(Object.values(tasks));
+  if (source.skip_charts) {
+    tasks.pages = Promise.resolve({
+      error: 'skipped — source.skip_charts is true',
+      data: [],
+    });
+    tasks.traffic = Promise.resolve({
+      error: 'skipped — source.skip_charts is true',
+      data: [],
+    });
+  } else {
+    const chartBody = (event, breakdowns) => ({
+      projectId,
+      range,
+      series: [
+        {
+          id: event,
+          name: event,
+          event: { name: event },
+          aggregations: [{ name: 'count' }, { name: 'unique_visitors' }],
+        },
+      ],
+      breakdowns,
+    });
+    tasks.pages = client.request(expand(endpoints.charts), {
+      method: 'POST',
+      body: chartBody('screen_view', [{ name: 'path' }]),
+    });
+    tasks.traffic = client.request(expand(endpoints.charts), {
+      method: 'POST',
+      body: chartBody('screen_view', [
+        { name: 'referrer' },
+        { name: 'utm_source' },
+        { name: 'utm_medium' },
+      ]),
+    });
+  }
+
   const labels = Object.keys(tasks);
+  const settled = await Promise.allSettled(Object.values(tasks));
   const out = {};
   for (let i = 0; i < labels.length; i++) {
     const label = labels[i];
@@ -48,8 +82,6 @@ export async function runReports(config) {
     if (result.status === 'fulfilled') {
       out[label] = result.value;
     } else {
-      // Surface the error in the returned shape so aggregate + followups can flag it,
-      // and emit to stderr so CI logs show the cause.
       const message = result.reason?.message || String(result.reason);
       process.stderr.write(`ga4-pulse: openpanel ${label} call failed — ${message}\n`);
       out[label] = { error: message, data: [] };
@@ -64,6 +96,7 @@ export async function runReports(config) {
     dateRange,
     diagnostics: {
       window_mapped_to: range,
+      endpoints,
       errors: Object.fromEntries(
         Object.entries(out)
           .filter(([, v]) => v && v.error)

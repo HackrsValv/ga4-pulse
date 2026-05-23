@@ -29,6 +29,24 @@ const sourceSchema = z.discriminatedUnion('type', [
     client_id: z.string().optional(),
     api_url: z.string().url().optional(),
     hostname_regex: z.string().optional(),
+    endpoints: z
+      .object({
+        metrics: z.string().optional(),
+        charts: z.string().optional(),
+        events: z.string().optional(),
+      })
+      .optional(),
+    range_map: z
+      .object({
+        '1h': z.string().optional(),
+        '24h': z.string().optional(),
+        '48h': z.string().optional(),
+        '72h': z.string().optional(),
+        '7d': z.string().optional(),
+        '30d': z.string().optional(),
+      })
+      .optional(),
+    skip_charts: z.boolean().optional(),
   }),
 ]);
 
