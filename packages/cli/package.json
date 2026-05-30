@@ -24,12 +24,12 @@
     "test": "node --test test"
   },
   "dependencies": {
-    "commander": "^12.1.0",
-    "googleapis": "^172.0.0",
+    "commander": "^15.0.0",
+    "googleapis": "^173.0.0",
     "js-yaml": "^4.1.0",
-    "nodemailer": "^6.9.16",
+    "nodemailer": "^8.0.10",
     "open": "^11.0.0",
-    "zod": "^3.23.8"
+    "zod": "^4.4.3"
   },
   "publishConfig": {
     "access": "public",
