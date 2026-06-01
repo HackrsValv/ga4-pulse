@@ -1,33 +1,41 @@
 // Normalize OpenPanel responses into the same shape ga4/aggregate emits.
-// OpenPanel response shapes vary across versions; this adapter is defensive
-// and degrades to zeros rather than throwing on missing fields.
+// Headlines come from /insights when it returns usable numbers; otherwise they are
+// derived client-side from the /export/events stream (self-hosts without insights routes).
 export function aggregate(reports, config) {
-  const metrics = reports.metrics || {};
-  const totals = {
-    sessions: pickNumber(metrics, ['sessions', 'session_count', 'sessions_count']),
-    users: pickNumber(metrics, ['visitors', 'unique_visitors', 'users']),
-    pageviews: pickNumber(metrics, ['pageviews', 'page_views', 'screen_views', 'events']),
-    engagedSessions: pickNumber(metrics, ['engaged_sessions']),
-    engagementSeconds: pickNumber(metrics, ['engagement_seconds', 'avg_session_duration', 'duration']),
-    keyEvents: pickNumber(metrics, ['key_events', 'conversions']),
-    bounceRate: pickNumber(metrics, ['bounce_rate', 'bounces']) || 0,
-    conversions: 0,
-  };
-
   const events = collectEvents(reports.eventsList);
   const eventMap = Object.fromEntries(events.map((e) => [e.name, e]));
 
   const conversionEvents = config.report?.conversion_events || ['conversion', 'purchase', 'lead'];
-  totals.conversions = conversionEvents.reduce((sum, n) => sum + (eventMap[n]?.count || 0), 0);
+  const conversions = conversionEvents.reduce((sum, n) => sum + (eventMap[n]?.count || 0), 0);
+
+  const insights = reports.metrics;
+  const insightsUsable =
+    insights && !insights.error && !insights.skipped && hasAnySignal(insights);
+
+  const headlinesSource = insightsUsable ? 'insights' : 'events';
+  const totals = insightsUsable
+    ? totalsFromInsights(insights)
+    : totalsFromEvents(reports.eventsList, config);
+  totals.conversions = conversions;
+  if (!totals.keyEvents) totals.keyEvents = conversions;
 
   const pages = breakdownToPages(reports.pagesChart);
   const traffic = breakdownToTraffic(reports.trafficChart);
 
   const warnings = [];
-  if (reports.metrics?.error) warnings.push(`OpenPanel metrics: ${reports.metrics.error}`);
+  // A 404 from /insights on a self-host without insights routes is expected; when we
+  // fall back to events cleanly, note that instead of raising the raw error as alarm.
+  if (insights?.error && headlinesSource === 'events') {
+    warnings.push(`OpenPanel insights unavailable — headlines derived from /export/events (${insights.error})`);
+  } else if (insights?.error) {
+    warnings.push(`OpenPanel metrics: ${insights.error}`);
+  }
   if (reports.pagesChart?.error) warnings.push(`OpenPanel pages: ${reports.pagesChart.error}`);
   if (reports.trafficChart?.error) warnings.push(`OpenPanel traffic: ${reports.trafficChart.error}`);
   if (reports.eventsList?.error) warnings.push(`OpenPanel events: ${reports.eventsList.error}`);
+  if (reports.eventsList?.capped) {
+    warnings.push('OpenPanel events: page cap reached — totals may undercount; raise source.events_max_pages');
+  }
 
   return {
     totals,
@@ -37,12 +45,59 @@ export function aggregate(reports, config) {
     pages,
     traffic,
     warnings,
-    diagnostics: reports.diagnostics,
+    diagnostics: { ...(reports.diagnostics || {}), headlines_source: headlinesSource },
     window: {
       start: reports.dateRange.startDate,
       end: reports.dateRange.endDate,
       label: reports.dateRange.label,
     },
+  };
+}
+
+function hasAnySignal(metrics) {
+  const keys = ['sessions', 'session_count', 'sessions_count', 'visitors', 'unique_visitors', 'users', 'pageviews', 'page_views', 'screen_views', 'events'];
+  return keys.some((k) => metrics[k] != null);
+}
+
+function totalsFromInsights(metrics) {
+  return {
+    sessions: pickNumber(metrics, ['sessions', 'session_count', 'sessions_count']),
+    users: pickNumber(metrics, ['visitors', 'unique_visitors', 'users']),
+    pageviews: pickNumber(metrics, ['pageviews', 'page_views', 'screen_views', 'events']),
+    engagedSessions: pickNumber(metrics, ['engaged_sessions']),
+    engagementSeconds: pickNumber(metrics, ['engagement_seconds', 'avg_session_duration', 'duration']),
+    keyEvents: pickNumber(metrics, ['key_events', 'conversions']),
+    bounceRate: pickNumber(metrics, ['bounce_rate', 'bounces']) || 0,
+    conversions: 0,
+  };
+}
+
+function totalsFromEvents(list, config) {
+  const rows = (list && !list.error && (list.data || list.events || list.items)) || [];
+  const pageviewEvent = config.source?.pageview_event || 'screen_view';
+  const sessions = new Set();
+  const users = new Set();
+  let pageviews = 0;
+  let durationMs = 0;
+  for (const row of rows) {
+    const sid = row.sessionId || row.session_id;
+    const uid = row.profileId || row.profile_id || row.deviceId || row.device_id;
+    if (sid) sessions.add(sid);
+    if (uid) users.add(uid);
+    const name = row.name || row.event_name || row.event;
+    if (name === pageviewEvent) pageviews += 1;
+    const dur = Number(row.duration);
+    if (!Number.isNaN(dur)) durationMs += dur;
+  }
+  return {
+    sessions: sessions.size,
+    users: users.size,
+    pageviews,
+    engagedSessions: 0,
+    engagementSeconds: Math.round(durationMs / 1000),
+    keyEvents: 0,
+    bounceRate: 0,
+    conversions: 0,
   };
 }
 

@@ -93,6 +93,7 @@ Base URL: `https://api.openpanel.dev` (cloud) or your self-hosted host.
 - `engagementSeconds` may be `0` when OpenPanel returns no `engagement_seconds` or `avg_session_duration` field.
 - **Pages + traffic breakdowns** use `GET /export/charts` with query parameters (`projectId`, `range`, `event=screen_view`, `breakdown=path|utm_source`). If your deployment's `export.router` shape differs, override with `source.endpoints.charts` or set `source.skip_charts: true`.
 - The Export API (`/export/events`) requires credentials with the `read` or `root` scope, not the default `write` scope. If you see `401 Invalid client id` from `/export/events` but `/insights/{projectId}/metrics` works, your client has only `write` access — provision a new client with at least `read`.
+- When `/insights/{projectId}/overview` is unavailable (404) or `skip_insights` is set, sessions/users/pageviews are derived from the paged `/export/events` stream (distinct `sessionId` / `profileId`, `screen_view` count); a page-cap warning appears if pagination is truncated.
 - Windows `48h` and `72h` are mapped to OpenPanel's `7d` range by default. Override via `source.range_map` or switch your `window` to `7d` explicitly.
 
 Valid OpenPanel ranges (verified 2026-05-23 against api.openpanel.dev): `30min`, `lastHour`, `last24h`, `today`, `yesterday`, `7d`, `30d`, `3m`, `6m`, `12m`, `monthToDate`, `lastMonth`, `yearToDate`, `lastYear`, `custom`. Cross-check your deployment's enum.
@@ -114,6 +115,9 @@ source:
     24h: 'last24h'                                  # override only the keys you need
     7d:  '7d'
   skip_charts: false                                # set true if your deployment has no chart endpoint
+  skip_insights: false        # set true if your deployment has no /insights router; headlines come from /export/events
+  pageview_event: screen_view # event name counted as a pageview when deriving headlines from events
+  events_max_pages: 20        # safety cap on /export/events pagination (20 * 1000 events)
 ```
 
 `{projectId}` is substituted at request time. Anything you omit falls back to the documented default.

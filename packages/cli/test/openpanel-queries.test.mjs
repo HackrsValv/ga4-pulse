@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { buildRequestPlan, resolveRange } from '../src/sources/openpanel/queries.mjs';
+import { buildRequestPlan, resolveRange, fetchAllEvents } from '../src/sources/openpanel/queries.mjs';
 
 const VALID = new Set([
   '30min', 'lastHour', 'today', 'yesterday', '7d', '30d', '6m', '12m',
@@ -49,10 +49,40 @@ test('source.chart_event overrides the charted event name', () => {
   assert.deepEqual(JSON.parse(plan.pages.query.events), [{ name: 'pageview' }]);
 });
 
-test('events request carries no range param (/export/events ignores range)', () => {
+test('buildRequestPlan no longer includes an events descriptor', () => {
   const plan = buildRequestPlan({ projectId: 'p', range: '7d', source: {} });
-  assert.equal(plan.events.query.range, undefined);
-  assert.equal(plan.events.query.projectId, 'p');
+  assert.equal(plan.events, undefined);
+});
+
+test('fetchAllEvents pages through all pages and accumulates rows', async () => {
+  const pages = {
+    1: { meta: { totalCount: 3, pages: 2, current: 1 }, data: [{ sessionId: 'a' }, { sessionId: 'b' }] },
+    2: { meta: { totalCount: 3, pages: 2, current: 2 }, data: [{ sessionId: 'c' }] },
+  };
+  const calls = [];
+  const client = { request: async (path, { query }) => { calls.push(query.page); return pages[query.page]; } };
+  const r = await fetchAllEvents(client, { path: '/export/events', projectId: 'p', start: 's', end: 'e' });
+  assert.deepEqual(calls, [1, 2]);
+  assert.equal(r.data.length, 3);
+  assert.equal(r.totalCount, 3);
+  assert.equal(r.capped, false);
+});
+
+test('fetchAllEvents respects maxPages cap and flags capped', async () => {
+  const client = { request: async (_p, { query }) => ({ meta: { totalCount: 999, pages: 99, current: query.page }, data: [{ sessionId: String(query.page) }] }) };
+  const r = await fetchAllEvents(client, { path: '/export/events', projectId: 'p', start: 's', end: 'e', maxPages: 3 });
+  assert.equal(r.capped, true);
+  assert.equal(r.data.length, 3);
+});
+
+test('fetchAllEvents passes start/end/limit and stops on empty batch', async () => {
+  let seen;
+  const client = { request: async (_p, { query }) => { seen = query; return { meta: { pages: 1 }, data: [] }; } };
+  const r = await fetchAllEvents(client, { path: '/export/events', projectId: 'p', start: 'S', end: 'E' });
+  assert.equal(seen.start, 'S');
+  assert.equal(seen.end, 'E');
+  assert.equal(seen.limit, 1000);
+  assert.equal(r.data.length, 0);
 });
 
 test('skip_charts yields null chart plans', () => {
