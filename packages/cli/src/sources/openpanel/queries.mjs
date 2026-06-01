@@ -1,5 +1,5 @@
 import { buildOpenpanelClient, resolveProjectId } from './client.mjs';
-import { windowToDateRange } from '../../util/date.mjs';
+import { windowToDateRange, windowToInstantRange } from '../../util/date.mjs';
 
 // Defaults verified 2026-06-01 against upstream OpenPanel
 // (apps/api/src/routes/export.router.ts, apps/api/src/controllers/export.controller.ts,
@@ -55,10 +55,6 @@ export function buildRequestPlan({ projectId, range, source = {} }) {
 
   const plan = {
     metrics: { path: expand(endpoints.metrics), query: { range } },
-    events: {
-      path: expand(endpoints.events),
-      query: { projectId, limit: 200, includes: 'properties' },
-    },
     pages: null,
     traffic: null,
   };
@@ -76,20 +72,68 @@ export function buildRequestPlan({ projectId, range, source = {} }) {
   return plan;
 }
 
+const EVENTS_PAGE_LIMIT = 1000;
+const DEFAULT_EVENTS_MAX_PAGES = 20; // 20 * 1000 = 20k-event safety cap
+
+// Page through /export/events accumulating all rows in [start,end]. Returns
+// { data, totalCount, capped }. `capped` is true when the page cap is hit before
+// all pages are exhausted — surfaced as a warning, never silently dropped.
+export async function fetchAllEvents(client, { path, projectId, start, end, maxPages = DEFAULT_EVENTS_MAX_PAGES }) {
+  const rows = [];
+  let page = 1;
+  let totalPages = 1;
+  let totalCount = 0;
+  let capped = false;
+  while (page <= totalPages) {
+    if (page > maxPages) { capped = true; break; }
+    const res = await client.request(path, {
+      query: { projectId, start, end, page, limit: EVENTS_PAGE_LIMIT },
+    });
+    const batch = res?.data || res?.events || res?.items || [];
+    rows.push(...batch);
+    const meta = res?.meta || {};
+    totalPages = Number(meta.pages ?? totalPages) || totalPages;
+    totalCount = Number(meta.totalCount ?? rows.length) || rows.length;
+    if (!batch.length) break;
+    page += 1;
+  }
+  return { data: rows, totalCount, capped };
+}
+
 export async function runReports(config) {
   const source = config.source;
   const client = buildOpenpanelClient(source);
   const dateRange = windowToDateRange(config.window, config.timezone);
+  const instant = windowToInstantRange(config.window);
   const projectId = await resolveProjectId(client, source);
   client.projectId = projectId;
 
   const range = resolveRange(config.window, source);
   const plan = buildRequestPlan({ projectId, range, source });
+  const endpoints = { ...DEFAULT_ENDPOINTS, ...(source.endpoints || {}) };
+  const eventsPath = endpoints.events.replace('{projectId}', projectId);
 
-  const tasks = {
-    metrics: client.request(plan.metrics.path, { query: plan.metrics.query }),
-    events: client.request(plan.events.path, { query: plan.events.query }),
-  };
+  // /export/events is the headline source whenever /insights is unavailable, and the
+  // source for event counts. Fetch the full window (paged) regardless of insights.
+  const eventsPromise = fetchAllEvents(client, {
+    path: eventsPath,
+    projectId,
+    start: instant.start,
+    end: instant.end,
+    maxPages: source.events_max_pages,
+  })
+    .then((r) => ({ data: r.data, meta: { totalCount: r.totalCount }, capped: r.capped }))
+    .catch((err) => ({ error: err?.message || String(err), data: [] }));
+
+  const tasks = { events: eventsPromise };
+
+  // Skip /insights entirely when the deployment has no insights router (skip_insights);
+  // otherwise attempt it and let aggregate fall back to events on error.
+  if (source.skip_insights) {
+    tasks.metrics = Promise.resolve({ skipped: true });
+  } else {
+    tasks.metrics = client.request(plan.metrics.path, { query: plan.metrics.query });
+  }
 
   if (plan.pages) {
     tasks.pages = client.request(plan.pages.path, { query: plan.pages.query });
@@ -122,7 +166,9 @@ export async function runReports(config) {
     dateRange,
     diagnostics: {
       window_mapped_to: range,
-      endpoints: { ...DEFAULT_ENDPOINTS, ...(source.endpoints || {}) },
+      window_instant: instant,
+      endpoints,
+      events_capped: out.events?.capped || false,
       errors: Object.fromEntries(
         Object.entries(out)
           .filter(([, v]) => v && v.error)

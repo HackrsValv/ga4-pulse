@@ -37,3 +37,18 @@ export function formatDate(date, timezone) {
     day: '2-digit',
   }).format(date);
 }
+
+const WINDOW_HOURS = {
+  '1h': 1, '24h': 24, '48h': 48, '72h': 72, '7d': 24 * 7, '30d': 24 * 30,
+};
+
+// Concrete trailing instant bounds for OpenPanel /export/events, which filters by
+// start/end timestamps (no `range` enum param). `now` is injectable for tests.
+export function windowToInstantRange(window, now = new Date()) {
+  const hours = WINDOW_HOURS[window];
+  if (!hours) {
+    throw new Error(`Unknown window '${window}'. Choose: ${Object.keys(WINDOW_HOURS).join(', ')}`);
+  }
+  const start = new Date(now.getTime() - hours * 3600 * 1000);
+  return { start: start.toISOString(), end: now.toISOString() };
+}

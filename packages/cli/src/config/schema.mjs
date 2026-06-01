@@ -47,6 +47,10 @@ const sourceSchema = z.discriminatedUnion('type', [
       })
       .optional(),
     skip_charts: z.boolean().optional(),
+    skip_insights: z.boolean().optional(),
+    chart_event: z.string().optional(),
+    pageview_event: z.string().optional(),
+    events_max_pages: z.number().int().positive().optional(),
   }),
 ]);
 
