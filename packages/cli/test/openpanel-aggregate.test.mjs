@@ -35,6 +35,19 @@ test('falls back to events-derived headlines when insights 404s', () => {
   assert.ok(!data.warnings.some((w) => w.startsWith('OpenPanel metrics:')), 'no raw alarm when fallback succeeds');
 });
 
+test('events-fallback reports the trailing instant window, not the calendar date', () => {
+  const reports = {
+    metrics: { error: 'OpenPanel 404 GET /api/insights/p/overview' },
+    eventsList: { data: evRows() },
+    dateRange,
+    diagnostics: { window_instant: { start: '2026-05-31T12:00:00.000Z', end: '2026-06-01T12:00:00.000Z' } },
+  };
+  const data = aggregate(reports, { report: {}, source: { type: 'openpanel' }, window: '24h' });
+  assert.equal(data.window.start, '2026-05-31T12:00:00.000Z');
+  assert.equal(data.window.end, '2026-06-01T12:00:00.000Z');
+  assert.equal(data.window.label, 'trailing 24h');
+});
+
 test('skip_insights sentinel derives from events with no metrics warning', () => {
   const reports = { metrics: { skipped: true }, eventsList: { data: evRows() }, dateRange };
   const data = aggregate(reports, { report: {}, source: { type: 'openpanel', skip_insights: true } });

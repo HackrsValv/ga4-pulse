@@ -37,6 +37,19 @@ export function aggregate(reports, config) {
     warnings.push('OpenPanel events: page cap reached — totals may undercount; raise source.events_max_pages');
   }
 
+  const windowOut =
+    headlinesSource === 'events' && reports.diagnostics?.window_instant
+      ? {
+          start: reports.diagnostics.window_instant.start,
+          end: reports.diagnostics.window_instant.end,
+          label: trailingWindowLabel(config.window),
+        }
+      : {
+          start: reports.dateRange.startDate,
+          end: reports.dateRange.endDate,
+          label: reports.dateRange.label,
+        };
+
   return {
     totals,
     hosts: [],
@@ -46,17 +59,21 @@ export function aggregate(reports, config) {
     traffic,
     warnings,
     diagnostics: { ...(reports.diagnostics || {}), headlines_source: headlinesSource },
-    window: {
-      start: reports.dateRange.startDate,
-      end: reports.dateRange.endDate,
-      label: reports.dateRange.label,
-    },
+    window: windowOut,
   };
 }
 
 function hasAnySignal(metrics) {
   const keys = ['sessions', 'session_count', 'sessions_count', 'visitors', 'unique_visitors', 'users', 'pageviews', 'page_views', 'screen_views', 'events'];
   return keys.some((k) => metrics[k] != null);
+}
+
+function trailingWindowLabel(window) {
+  const map = {
+    '1h': 'trailing 1h', '24h': 'trailing 24h', '48h': 'trailing 48h',
+    '72h': 'trailing 72h', '7d': 'trailing 7 days', '30d': 'trailing 30 days',
+  };
+  return map[window] || `trailing ${window || 'window'}`;
 }
 
 function totalsFromInsights(metrics) {
