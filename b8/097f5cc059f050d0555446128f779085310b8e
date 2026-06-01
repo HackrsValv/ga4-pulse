@@ -1,0 +1,13 @@
+packages/cli/src/sources/openpanel/queries.mjs
+  ai_agent 4-6,8-9,11-19,25-28,31,38-78,86-87,90-91,94-96,98-99,125
+package.json
+  ai_agent 16
+packages/cli/test/openpanel-queries.test.mjs
+  ai_agent 1-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b8097f5cc059f050d0555446128f779085310b8e",
+  "prompts": {}
+}
