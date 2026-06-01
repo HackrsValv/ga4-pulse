@@ -1,0 +1,23 @@
+docs/openpanel-setup.md
+  s_784750f7e9eda1::t_5a446c59f001b7 94,99,111,115
+packages/cli/src/sources/openpanel/aggregate.mjs
+  s_784750f7e9eda1::t_5a446c59f001b7 40-52,62,71-76
+packages/cli/test/openpanel-aggregate.test.mjs
+  s_784750f7e9eda1::t_5a446c59f001b7 38-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "4b6c578c5d79f5104bc6b6f8f0bd151c06c8ba1f",
+  "prompts": {},
+  "sessions": {
+    "s_784750f7e9eda1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e84e6-2807-76d0-9d6e-968cfbb2b552",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Marty <saint@ghost.lt>"
+    }
+  }
+}
