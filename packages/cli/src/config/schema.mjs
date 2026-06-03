@@ -70,6 +70,7 @@ const reportSchema = z
       .optional(),
     bot_signature_threshold: z.number().min(0).max(1).optional(),
     conversion_events: z.array(z.string()).optional(),
+    funnel_events: z.array(z.string()).optional(),
   })
   .optional();
 

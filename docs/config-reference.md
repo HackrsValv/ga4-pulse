@@ -14,6 +14,7 @@ Validated by Zod at runtime. The full commented schema lives in [`template/pulse
 | `report.sections` | array | all four | Subset of `headlines`, `usage`, `system`, `followups` |
 | `report.bot_signature_threshold` | number 0-1 | `0.6` | Warn if (direct)/(none) > threshold |
 | `report.conversion_events` | array | `[conversion, purchase, lead]` | Event names counted as conversions |
+| `report.funnel_events` | array | `['page_view','cta_click','form_start','form_field_error']` | Event names shown in the Usage 'Event funnel' line; set to event names your analytics source actually emits (e.g. OpenPanel: `['screen_view','link_out']`) |
 | `report.deadline.date` | YYYY-MM-DD | none | Countdown bullet in Followups |
 | `report.deadline.label` | string | `'Deadline'` | Label for the countdown bullet |
 | `sender.type` | enum | required | `mailgun`, `resend`, `sendgrid`, `smtp`, `slack-webhook` |

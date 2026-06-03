@@ -30,7 +30,7 @@ export function renderMarkdown(data, config, subject) {
         parts.push(`| ${t.source} / ${t.medium} | ${t.sessions} | ${t.engagedSessions} |`);
       }
       parts.push('');
-      const funnel = ['page_view', 'cta_click', 'form_start', 'form_field_error']
+      const funnel = (config.report?.funnel_events || ['page_view', 'cta_click', 'form_start', 'form_field_error'])
         .map((n) => `${n}=${data.eventMap[n]?.count || 0}`)
         .join(' · ');
       parts.push(`**Event funnel**: ${funnel}`);
