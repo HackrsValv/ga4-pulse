@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "lint": "eslint packages/cli/src",
-    "test": "node --test packages/cli/test/aggregate.test.mjs packages/cli/test/config.test.mjs packages/cli/test/ga4-auth.test.mjs packages/cli/test/html-escape.test.mjs packages/cli/test/openpanel-config.test.mjs packages/cli/test/openpanel-resolve-project.test.mjs packages/cli/test/sources-registry.test.mjs packages/cli/test/subject.test.mjs packages/cli/test/openpanel-queries.test.mjs packages/cli/test/openpanel-aggregate.test.mjs packages/cli/test/openpanel-instant-range.test.mjs packages/cli/test/funnel.test.mjs",
+    "test": "node --test packages/cli/test/aggregate.test.mjs packages/cli/test/config.test.mjs packages/cli/test/ga4-auth.test.mjs packages/cli/test/html-escape.test.mjs packages/cli/test/openpanel-config.test.mjs packages/cli/test/openpanel-resolve-project.test.mjs packages/cli/test/sources-registry.test.mjs packages/cli/test/subject.test.mjs packages/cli/test/openpanel-queries.test.mjs packages/cli/test/openpanel-aggregate.test.mjs packages/cli/test/openpanel-events-breakdown.test.mjs packages/cli/test/openpanel-instant-range.test.mjs packages/cli/test/funnel.test.mjs",
     "format": "prettier --write \"**/*.{js,mjs,json,md,yml,yaml}\""
   },
   "devDependencies": {

@@ -19,8 +19,22 @@ export function aggregate(reports, config) {
   totals.conversions = conversions;
   if (!totals.keyEvents) totals.keyEvents = conversions;
 
-  const pages = breakdownToPages(reports.pagesChart);
-  const traffic = breakdownToTraffic(reports.trafficChart);
+  const chartUsable = (c) => c && !c.error && (c.data || c.series || []).length > 0;
+  const chartsFromEvents = !!config.source?.charts_from_events;
+
+  const pagesFromCharts = chartUsable(reports.pagesChart);
+  const pages = pagesFromCharts
+    ? breakdownToPages(reports.pagesChart)
+    : chartsFromEvents
+      ? pagesFromEvents(reports.eventsList, config)
+      : [];
+
+  const trafficFromCharts = chartUsable(reports.trafficChart);
+  const traffic = trafficFromCharts
+    ? breakdownToTraffic(reports.trafficChart)
+    : chartsFromEvents
+      ? trafficFromEvents(reports.eventsList, config)
+      : [];
 
   const warnings = [];
   // A 404 from /insights on a self-host without insights routes is expected; when we
@@ -30,8 +44,18 @@ export function aggregate(reports, config) {
   } else if (insights?.error) {
     warnings.push(`OpenPanel metrics: ${insights.error}`);
   }
-  if (reports.pagesChart?.error) warnings.push(`OpenPanel pages: ${reports.pagesChart.error}`);
-  if (reports.trafficChart?.error) warnings.push(`OpenPanel traffic: ${reports.trafficChart.error}`);
+  if (reports.pagesChart?.error) {
+    if (!pagesFromCharts && chartsFromEvents)
+      warnings.push('OpenPanel pages derived from /export/events (charts unavailable)');
+    else
+      warnings.push(`OpenPanel pages: ${reports.pagesChart.error}`);
+  }
+  if (reports.trafficChart?.error) {
+    if (!trafficFromCharts && chartsFromEvents)
+      warnings.push('OpenPanel traffic derived from /export/events (charts unavailable)');
+    else
+      warnings.push(`OpenPanel traffic: ${reports.trafficChart.error}`);
+  }
   if (reports.eventsList?.error) warnings.push(`OpenPanel events: ${reports.eventsList.error}`);
   if (reports.eventsList?.capped) {
     warnings.push('OpenPanel events: page cap reached — totals may undercount; raise source.events_max_pages');
@@ -116,6 +140,74 @@ function totalsFromEvents(list, config) {
     bounceRate: 0,
     conversions: 0,
   };
+}
+
+function pagesFromEvents(list, config) {
+  const rows = (list && !list.error && (list.data || list.events || list.items)) || [];
+  const pageviewEvent = config.source?.pageview_event || 'screen_view';
+  const pages = new Map();
+  for (const row of rows) {
+    const name = row.name || row.event_name || row.event;
+    if (name !== pageviewEvent) continue;
+    const path = row.path || row.url;
+    if (!path) continue;
+    const prev = pages.get(path) || { path, pageviews: 0, users: new Set() };
+    prev.pageviews += 1;
+    const uid = row.profileId || row.profile_id || row.deviceId || row.device_id;
+    if (uid) prev.users.add(uid);
+    pages.set(path, prev);
+  }
+  return [...pages.values()]
+    .map((page) => ({
+      path: page.path,
+      pageviews: page.pageviews,
+      users: page.users.size,
+      engagementSeconds: 0,
+    }))
+    .sort((a, b) => b.pageviews - a.pageviews)
+    .slice(0, 15);
+}
+
+function trafficFromEvents(list) {
+  const rows = (list && !list.error && (list.data || list.events || list.items)) || [];
+  const sessions = new Set();
+  const sessionMap = new Map();
+  for (const row of rows) {
+    const sid = row.sessionId || row.session_id;
+    if (!sid) continue;
+    sessions.add(sid);
+    if (sessionMap.has(sid)) continue;
+    const source = row.referrerName || row.referrer;
+    if (!source) continue;
+    sessionMap.set(sid, { source, medium: row.referrerType || '(none)' });
+  }
+  for (const sid of sessions) {
+    if (!sessionMap.has(sid)) sessionMap.set(sid, { source: '(direct)', medium: '(none)' });
+  }
+
+  const counted = new Set();
+  const traffic = new Map();
+  for (const row of rows) {
+    const sid = row.sessionId || row.session_id;
+    if (!sid || counted.has(sid)) continue;
+    counted.add(sid);
+    const { source, medium } = sessionMap.get(sid) || { source: '(direct)', medium: '(none)' };
+    const key = source + '\0' + medium;
+    const prev = traffic.get(key) || { source, medium, sessions: 0 };
+    prev.sessions += 1;
+    traffic.set(key, prev);
+  }
+
+  return [...traffic.values()]
+    .map((row) => ({
+      source: row.source,
+      medium: row.medium,
+      sessions: row.sessions,
+      engagedSessions: 0,
+      keyEvents: 0,
+    }))
+    .sort((a, b) => b.sessions - a.sessions)
+    .slice(0, 15);
 }
 
 function pickNumber(obj, keys) {

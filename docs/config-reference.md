@@ -23,6 +23,13 @@ Validated by Zod at runtime. The full commented schema lives in [`template/pulse
 | `sender.to` | string or array | required | Recipient(s) |
 | `sender.subject_prefix` | string | `''` | Prepends to subject line |
 
+## OpenPanel source keys
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `source.skip_charts` | boolean | `false` | Skip OpenPanel `/export/charts` requests. |
+| `source.charts_from_events` | boolean | `false` | When true and `/export/charts` is skipped or errors, derive Pages and Traffic client-side from the existing `/export/events` stream by `path` and `referrerName`/`referrerType`. Cloud deployments can keep the default `false` to use `/export/charts`. |
+
 ## Env var overrides
 
 These env vars override values from the YAML at runtime:
