@@ -34,6 +34,11 @@ report:
     - conversion
     - purchase
     - lead
+  funnel_events:                          # event names shown in Usage > Event funnel
+    - page_view
+    - cta_click
+    - form_start
+    - form_field_error
   # deadline:                             # optional countdown bullet in Followups
   #   date: '2026-07-05'
   #   label: 'Camp deadline'

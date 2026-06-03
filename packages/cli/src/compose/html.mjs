@@ -8,7 +8,7 @@ export function renderHtml(data, config, subject) {
   parts.push(`<h1 style="font-size:20px">${escapeHtml(subject)}</h1>`);
 
   if (sections.includes('headlines')) parts.push(renderHeadlines(data));
-  if (sections.includes('usage')) parts.push(renderUsage(data));
+  if (sections.includes('usage')) parts.push(renderUsage(data, config));
   if (sections.includes('system')) parts.push(renderSystem());
   if (sections.includes('followups')) parts.push(renderFollowups(data, config));
 
@@ -28,7 +28,7 @@ function renderHeadlines(data) {
 </ul>`.trim();
 }
 
-function renderUsage(data) {
+function renderUsage(data, config) {
   if (data.totals.sessions === 0) {
     return '<h2>Usage</h2><p>No data for window.</p>';
   }
@@ -43,7 +43,7 @@ function renderUsage(data) {
         `  ${pad(t.sessions, 5)}  ${pad(t.engagedSessions, 5)}  ${escapeHtml(t.source)} / ${escapeHtml(t.medium)}`,
     )
     .join('\n');
-  const funnel = ['page_view', 'cta_click', 'form_start', 'form_field_error']
+  const funnel = (config.report?.funnel_events || ['page_view', 'cta_click', 'form_start', 'form_field_error'])
     .map((name) => `${name}=${data.eventMap[name]?.count || 0}`)
     .join(' · ');
   return `
